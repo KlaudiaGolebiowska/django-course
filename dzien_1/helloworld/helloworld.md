@@ -16,11 +16,19 @@ helloworld
 └── manage.py
 ```
 
+## Kroki konieczne do wykonania z PyCharm
+* Otworzenie projektu w Pycharm:
+    - W przypadku otworzenia katalogu <MOJE_PROJEKTY_DJANGO>/helloworld nie jest wymagana żadna czynność
+    - W przypadku otworzenia katalogu <MOJE_PROJEKTY_DJANGO> należy ustawić katalog <MOJE_PROJEKTY_DJANGO>/helloworld jako 'Sources Root'. Prawy przycisk myszy -> Mark Directory as -> Sources Root.
+* Ustawienie wirtualnego środowiska na utworzone wcześniej w PyCharm
+* Uruchomienie nowej sesji terminala lub cmd w PyCharm w celu odświeżenia środowiska
+
 ## Uruchamianie projektu Django
 
 ```console
 foo@bar:~$ python manage.py runserver
 ```
+Pod adresem 127.0.0.1:8000 powinieneś zobaczyć stronę początkową Django
 
 ## Dodawanie nowej aplikacji do projektu Django
 
@@ -95,14 +103,96 @@ W Django widoki określają, jaka zawartość jest wyświetlana na danej stronie
 Kiedy użytkownik żąda konkretnej strony, takiej jak strona główna, URLConf używa wyrażenia regularnego, aby zmapować to żądanie do odpowiedniej funkcji widoku, która następnie zwraca pożądane dane.
 Innymi słowy, nasz widok wyświetli tekst "Hello, World", podczas gdy nasz adres url zapewni, że gdy użytkownik odwiedzi stronę główną, zostanie przekierowany do właściwego widoku.
 
+## Podpięcie URLs aplikacji do URLs projektu.
+
+Prawie skończyliśmy. Ostatnim krokiem jest skonfigurowanie również naszego pliku urls.py na poziomie projektu. Pamiętaj, że powszechne jest posiadanie wielu aplikacji w ramach jednego projektu Django, więc każda z nich potrzebuje własnej trasy.
+
+```py
+# helloworld/urls.py
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('pages.urls')),
+]
+```
+
+Pod adresem 127.0.0.1:8000 powinieneś zobaczyć napis Hello World!
 
 
+## Dodanie dwóch widoków w oparciu o klasy
+W utworzonej aplikacji należy zmodyfikować pliki views.py oraz urls.py
+
+```py
+#helloworld/pages/views.py
+from django.views.generic import TemplateView
 
 
+class HomePageView(TemplateView):
+    template_name = 'home.html'
 
 
+class DetailsPageView(TemplateView):
+    template_name = 'details.html'
+```
+
+```py
+# pages/urls.py
+from django.urls import path
+from helloworld.views import HomePageView
+
+urlpatterns = [
+    path('', views.HomePageView.as_view(), name='home')
+]
+```
+
+## Dodanie szablonów
+Dodanie katalogu templates do projektu w głównym katalogu projektu helloworld a następnie ścieżkę do tego katalogu w pliku settings.py
+
+TEMPLATES = [
+    {
+        ...
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        ...
+    },
+]
+
+### base.html
+```html
+# templates/base.py
+
+<header>
+    <a href="{% url 'home' %}">Home</a> === <a href="{% url 'details' %}">Details</a>
+</header>
+
+{% block content %}
+{% endblock %}
+```
+
+### home.html
+```html
+# templates/home.html
+
+{% extends 'base.html' %}
 
 
+{% block content %}
+<h1>Home Application Page</h1>
 
+<p>New Paragraph</p>
+{% endblock %}
+```
 
+### details.html
+```html
+# templates/details.html
+{% extends 'base.html' %}
 
+{% block content %}
+
+<h2>Details</h2>
+<p>Paragraph Details</p>
+
+{% endblock %}
+```
